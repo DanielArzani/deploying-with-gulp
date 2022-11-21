@@ -146,10 +146,11 @@ exports.default = series(
 );
 
 exports.prod = series(
+  assetsTask,
+  imageminTask,
+  svgoTask,
   cssTask_PROD,
   scssTask_PROD,
   jsTask_PROD,
-  imageminTask,
-  svgoTask,
   cacheBustTask
 );
