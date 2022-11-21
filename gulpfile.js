@@ -11,6 +11,11 @@ const sass = require('gulp-sass')(require('sass'));
 const svgo = require('gulp-svgo');
 const uglify = require('gulp-uglify');
 
+// html task // testing to see if I need an index.html in the dist folder
+function htmlTask() {
+  return src('index.html').pipe(dest('dist'));
+}
+
 // assets
 function assetsTask() {
   return src(['src/assets/**', '!src/assets/images/**']).pipe(
@@ -146,6 +151,7 @@ exports.default = series(
 );
 
 exports.prod = series(
+  htmlTask,
   assetsTask,
   imageminTask,
   svgoTask,
