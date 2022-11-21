@@ -21,7 +21,7 @@
     "sass": "^1.56.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "gulp prod"
   },
   "name": "gulp-template",
   "version": "1.0.0",
@@ -29,5 +29,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "Type `gulp run` to compress images and add assets, after that type gulp. || Don't forget to append ?cb=123 to the link and script tags' file paths || Comment or delete either cssTask or scssTask if they're not being used"
 }

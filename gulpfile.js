@@ -45,6 +45,22 @@ function cssTask() {
   ];
   return src(fileOrder, { sourcemaps: true })
     .pipe(concat('styles.css'))
+    .pipe(postcss([autoprefixer()]))
+    .pipe(dest('dist/css', { sourcemaps: '.' }));
+}
+
+function cssTask_PROD() {
+  const fileOrder = [
+    'src/css/reset.css',
+    'src/css/fonts.css',
+    'src/css/global.css',
+    'src/css/compositions.css',
+    'src/css/utilities.css',
+    'src/css/blocks.css',
+    'src/css/exceptions.css',
+  ];
+  return src(fileOrder, { sourcemaps: true })
+    .pipe(concat('styles.css'))
     .pipe(postcss([autoprefixer(), cssnano()]))
     .pipe(dest('dist/css', { sourcemaps: '.' }));
 }
@@ -53,12 +69,25 @@ function cssTask() {
 function scssTask() {
   return src('src/sass/main.scss', { sourcemaps: true })
     .pipe(sass().on('error', sass.logError))
+    .pipe(postcss([autoprefixer()]))
+    .pipe(dest('dist/css', { sourcemaps: '.' }));
+}
+
+function scssTask_PROD() {
+  return src('src/sass/main.scss', { sourcemaps: true })
+    .pipe(sass().on('error', sass.logError))
     .pipe(postcss([autoprefixer(), combinemq(), cssnano()]))
     .pipe(dest('dist/css', { sourcemaps: '.' }));
 }
 
 // js
 function jsTask() {
+  return src(['src/js/**/*.js', '!src/js/tests/**'], { sourcemaps: true }).pipe(
+    dest('dist/js', { sourcemaps: '.' })
+  );
+}
+
+function jsTask_PROD() {
   return src(['src/js/**/*.js', '!src/js/tests/**'], { sourcemaps: true })
     .pipe(uglify())
     .pipe(dest('dist/js', { sourcemaps: '.' }));
@@ -104,10 +133,10 @@ function watchTask() {
   watch('src/assets/images/*', series(imageminTask, browserSyncReload));
 }
 
+// I only want these to run once at the start since they're unlikely to change
+exports.run = series(assetsTask, imageminTask, svgoTask);
+
 exports.default = series(
-  assetsTask,
-  imageminTask,
-  svgoTask,
   cssTask,
   scssTask,
   jsTask,
@@ -116,4 +145,11 @@ exports.default = series(
   watchTask
 );
 
-// exports.prod = series();
+exports.prod = series(
+  cssTask_PROD,
+  scssTask_PROD,
+  jsTask_PROD,
+  imageminTask,
+  svgoTask,
+  cacheBustTask
+);
