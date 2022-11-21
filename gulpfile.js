@@ -11,10 +11,10 @@ const sass = require('gulp-sass')(require('sass'));
 const svgo = require('gulp-svgo');
 const uglify = require('gulp-uglify');
 
-// html task // testing to see if I need an index.html in the dist folder
+// html task
 function htmlTask_PROD() {
   return src('index.html')
-    .pipe(replace(/\.\/dist/g, '.'))
+    .pipe(replace(/\/output/g, ''))
     .pipe(dest('dist'));
 }
 
@@ -53,7 +53,7 @@ function cssTask() {
   return src(fileOrder, { sourcemaps: true })
     .pipe(concat('styles.css'))
     .pipe(postcss([autoprefixer()]))
-    .pipe(dest('dist/css', { sourcemaps: '.' }));
+    .pipe(dest('src/css/output', { sourcemaps: '.' }));
 }
 
 function cssTask_PROD() {
@@ -69,7 +69,7 @@ function cssTask_PROD() {
   return src(fileOrder, { sourcemaps: true })
     .pipe(concat('styles.css'))
     .pipe(postcss([autoprefixer(), cssnano()]))
-    .pipe(dest('dist/css', { sourcemaps: '.' }));
+    .pipe(dest('dist/src/css', { sourcemaps: '.' }));
 }
 
 // sass
@@ -77,27 +77,43 @@ function scssTask() {
   return src('src/sass/main.scss', { sourcemaps: true })
     .pipe(sass().on('error', sass.logError))
     .pipe(postcss([autoprefixer()]))
-    .pipe(dest('dist/css', { sourcemaps: '.' }));
+    .pipe(dest('src/sass/output', { sourcemaps: '.' }));
 }
 
 function scssTask_PROD() {
   return src('src/sass/main.scss', { sourcemaps: true })
     .pipe(sass().on('error', sass.logError))
     .pipe(postcss([autoprefixer(), combinemq(), cssnano()]))
-    .pipe(dest('dist/css', { sourcemaps: '.' }));
+    .pipe(dest('dist/src/css', { sourcemaps: '.' }));
 }
 
 // js
-function jsTask() {
-  return src(['src/js/**/*.js', '!src/js/tests/**'], { sourcemaps: true }).pipe(
-    dest('dist/js', { sourcemaps: '.' })
-  );
+function jsTaskMain() {
+  return src(['src/js/script.js'], {
+    sourcemaps: true,
+  }).pipe(dest('src/js/output', { sourcemaps: '.' }));
+}
+
+function jsTaskSecondary() {
+  return src(
+    [
+      'src/js/**/*.js',
+      '!src/js/__tests__/**',
+      '!src/js/script.js',
+      '!src/js/output/**',
+    ],
+    {
+      sourcemaps: true,
+    }
+  ).pipe(dest('src/js/output', { sourcemaps: '.' }));
 }
 
 function jsTask_PROD() {
-  return src(['src/js/**/*.js', '!src/js/tests/**'], { sourcemaps: true })
+  return src(['src/js/**/*.js', '!src/js/__tests__/**', '!src/js/output/**'], {
+    sourcemaps: true,
+  })
     .pipe(uglify())
-    .pipe(dest('dist/js', { sourcemaps: '.' }));
+    .pipe(dest('dist/src/js', { sourcemaps: '.' }));
 }
 
 // cache-busting
@@ -135,18 +151,23 @@ function watchTask() {
       'src/js/**/*.js',
       '!src/js/tests/*.js',
     ],
-    series(cssTask, scssTask, jsTask, cacheBustTask, browserSyncReload)
+    series(
+      cssTask,
+      scssTask,
+      jsTaskMain,
+      jsTaskSecondary,
+      cacheBustTask,
+      browserSyncReload
+    )
   );
   watch('src/assets/images/*', series(imageminTask, browserSyncReload));
 }
 
-// I only want these to run once at the start since they're unlikely to change
-exports.run = series(assetsTask, imageminTask, svgoTask);
-
 exports.default = series(
   cssTask,
   scssTask,
-  jsTask,
+  jsTaskMain,
+  jsTaskSecondary,
   cacheBustTask,
   browserSyncServe,
   watchTask
