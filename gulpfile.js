@@ -53,7 +53,7 @@ function cssTask() {
   return src(fileOrder, { sourcemaps: true })
     .pipe(concat('styles.css'))
     .pipe(postcss([autoprefixer()]))
-    .pipe(dest('src/css/output', { sourcemaps: '.' }));
+    .pipe(dest('src/css', { sourcemaps: '.' }));
 }
 
 function cssTask_PROD() {
